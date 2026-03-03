@@ -49,8 +49,7 @@ Current focus areas:
 - Learning why class imbalance breaks accuracy as a metric
 
 This means the code prioritises clarity and mathematical transparency 
-over production optimisation — comments explain the *why*, not just 
-the *what*.
+over production optimisation.
 
 ## Stack
 Python · DuckDB · NumPy · Pandas
