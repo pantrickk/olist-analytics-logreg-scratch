@@ -37,6 +37,21 @@ understanding of underlying algorithms
 | Order value | 0.1288 | Expensive disappointments hurt more |
 | Installments | 0.0891 | Marginal effect |
 
+## Learning Philosophy
+This project is part of my self-directed journey into machine learning 
+through mathematics rather than frameworks. Before using libraries like 
+sklearn, I am building algorithms from scratch to understand what happens 
+beneath the abstraction.
+
+Current focus areas:
+- Understanding gradient descent/ascent through manual implementation
+- Building intuition for probability and log-likelihood
+- Learning why class imbalance breaks accuracy as a metric
+
+This means the code prioritises clarity and mathematical transparency 
+over production optimisation — comments explain the *why*, not just 
+the *what*.
+
 ## Stack
 Python · DuckDB · NumPy · Pandas
 
