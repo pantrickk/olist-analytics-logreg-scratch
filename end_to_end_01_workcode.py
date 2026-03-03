@@ -1,7 +1,6 @@
 import duckdb
 import pandas as pd
 import numpy as np
-import scipy.stats
 
 con = duckdb.connect(database=":memory:")
 
@@ -68,10 +67,9 @@ test_df = con.execute("""
 
 class LogisticRegression():
     def __init__(self):
-        self.learning_rate = 0.00005
+        self.learning_rate = 0.005
         self.epochs = 20000
         self.weights = None
-        pass
 
     def sigmoid(self, z):
         z_clipped = np.clip(z, -250, 250)
@@ -111,7 +109,7 @@ class LogisticRegression():
     def predict_probab(self, X):
         return self.sigmoid(X @ self.weights)
     
-    def predict(self, X, threshold=0.45):
+    def predict(self, X, threshold=0.4):
         probs = self.predict_probab(X)
         return (probs >= threshold).astype(int)
 
@@ -119,8 +117,8 @@ class LogisticRegression():
 model = LogisticRegression()
 
 vector_y = final_df["is_bad_review"].to_numpy().reshape(-1, 1).astype(float)
-features = ["max_installments", "delivery_delay"]
-X_scaled = (final_df[features] - final_df[features].mean() / final_df[features].std())
+features = ["max_installments","sum_value", "delivery_delay"]
+X_scaled = (final_df[features] - final_df[features].mean()) / final_df[features].std()
 X_array = X_scaled.to_numpy()
 ones_array = np.ones((X_array.shape[0], 1))
 X_array = np.hstack([ones_array, X_array]).astype(float)
@@ -140,13 +138,13 @@ fn = np.sum((predictions == 0) & (vector_y == 1))
 precision = tp / (tp + fp + 1e-15)
 recall = tp / (tp + fn + 1e-15)
 
-f1_score = scipy.stats.hmean([precision, recall])
+f1_score = f1_score = 2 * (precision * recall) / (precision + recall + 1e-15)
 
 print(f"Presnosť (precision) modelu je {precision * 100:.2f} %")
 print(f"Citlivosť (sensitivity) modelu je {recall * 100:.2f} %")
 print(f"F1 skóre modelu je {f1_score * 100:.2f} %")
 
-feature_names = ["Intercept", "Splátky", "Meškanie"]
+feature_names = ["Intercept", "Splátky","Cena", "Meškanie"]
 if model.weights is not None:
     for name, weight in zip(feature_names, model.weights.flatten()):
         print(f"{name}: {weight:.4f}")  
