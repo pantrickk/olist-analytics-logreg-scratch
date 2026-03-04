@@ -143,8 +143,8 @@ recall = tp / (tp + fn + 1e-15)
 f1_score = f1_score = 2 * (precision * recall) / (precision + recall + 1e-15)
 
 print(f"Model precision is {precision:.2%}")
-print(f"Model recall is{recall:.2%}")
-print(f"Model F1 score is{f1_score:.2%}")
+print(f"Model recall is {recall:.2%}")
+print(f"Model F1 score is {f1_score:.2%}")
 
 feature_names = ["Intercept", "Installments","Price", "Delay"]
 if model.weights is not None:
@@ -152,32 +152,69 @@ if model.weights is not None:
         print(f"{name}: {weight:.4f}")
 
 # --- Results visualisation ---
+probs = model.predict_probab(X_array)
+
+from matplotlib.widgets import Slider
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+fig.subplots_adjust(bottom=0.2)
+
+# weight bar chart (static)
 if model.weights is not None:
     weights_flat = model.weights.flatten()
     feature_names_plot = ["Installments", "Price", "Delay"]
     feature_weights = weights_flat[1:]
+    colors_bar = ['#AEC6CF', '#AEC6CF', '#1F3864']
+    axes[0].barh(feature_names_plot, feature_weights, color=colors_bar)
+    axes[0].set_xlabel("Weight")
+    axes[0].set_title("Impact of weights on a bad review")
+    axes[0].spines["top"].set_visible(False)
+    axes[0].spines["right"].set_visible(False)
+    axes[0].xaxis.grid(True, linestyle="--", alpha=0.5)
+    axes[0].set_axisbelow(True)
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    colors=['#AEC6CF', '#AEC6CF', '#1F3864']
-    ax.barh(feature_names_plot, feature_weights, color=colors)
-    ax.set_xlabel("Weight")
-    ax.set_title("Impact of weights on a bad review")
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.xaxis.grid(True, linestyle="--", alpha=0.5)
-    ax.set_axisbelow(True)
-    fig.savefig("weight_distribution.png", dpi=150)
+# slider
+slider_ax = fig.add_axes((0.35, 0.06, 0.3, 0.03))
+threshold_slider = Slider(slider_ax, 'Threshold', 0.1, 0.9, valinit=0.4)
 
+def update(val):
+    t = threshold_slider.val
+    preds = (probs >= t).astype(int)
 
-confusion_matrix = np.array([[tn, fp],
-                             [fn, tp]])
-row0 = tn + fp
-row1 = fn + tp
-annot_matrix = np.array([[f"TN: {tn} ({tn / row0:.2%})", 
-                          f"FP: {fp} ({(fp / row0):.2%})"],
-                         [f"FN: {fn} ({(fn / row1):.2%})", 
-                          f"TP: {tp} ({(tp / row1):.2%})"]])
-normalised_matrix = (confusion_matrix / confusion_matrix.sum())
-sns.heatmap(normalised_matrix, annot=annot_matrix, fmt="")
+    tp = np.sum((preds == 1) & (vector_y == 1))
+    tn = np.sum((preds == 0) & (vector_y == 0))
+    fp = np.sum((preds == 1) & (vector_y == 0))
+    fn = np.sum((preds == 0) & (vector_y == 1))
 
+    precision = tp / (tp + fp + 1e-15)
+    recall = tp / (tp + fn + 1e-15)
+    f1 = 2 * (precision * recall) / (precision + recall + 1e-15)
+    accuracy = np.mean(preds == vector_y)
+
+    # confusion matrix
+    axes[1].clear()
+    cm = np.array([[tn, fp], [fn, tp]])
+    row0 = tn + fp
+    row1 = fn + tp
+    annot = np.array([[f"TN: {tn}\n({tn/row0:.2%})", f"FP: {fp}\n({fp/row0:.2%})"],
+                      [f"FN: {fn}\n({fn/row1:.2%})", f"TP: {tp}\n({tp/row1:.2%})"]])
+    norm_cm = cm / cm.sum(axis=1, keepdims=True)
+    sns.heatmap(norm_cm, annot=annot, fmt="", ax=axes[1], cbar=False)
+    axes[1].set_title(f"Confusion Matrix (threshold={t:.2f})")
+
+    # metrics
+    axes[2].clear()
+    metrics = [accuracy, precision, recall, f1]
+    names = ["Accuracy", "Precision", "Recall", "F1"]
+    colors_met = ['#AEC6CF', '#AEC6CF', '#AEC6CF', '#1F3864']
+    axes[2].barh(names, metrics, color=colors_met)
+    axes[2].set_xlim(0, 1)
+    axes[2].set_title("Metrics")
+    for i, v in enumerate(metrics):
+        axes[2].text(v + 0.02, i, f"{v:.2%}", va='center')
+
+    fig.canvas.draw_idle()
+
+update(None)
+threshold_slider.on_changed(update)
 plt.show()
