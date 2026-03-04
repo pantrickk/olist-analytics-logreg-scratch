@@ -1,6 +1,8 @@
 import duckdb
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 con = duckdb.connect(database=":memory:")
 
@@ -104,7 +106,7 @@ class LogisticRegression():
             if i % 1000 == 0:
                 current_LL = self.compute_log_likelihood(X, y)
 
-                print(f"Aktuálna epocha: {i}, s chybou: {current_LL}")
+                print(f"Current epoch: {i}, with error: {current_LL}")
 
     def predict_probab(self, X):
         return self.sigmoid(X @ self.weights)
@@ -128,7 +130,7 @@ model.fit(X_array, vector_y)
 predictions = model.predict(X_array)
 accuracy = np.mean(predictions == vector_y)
 
-print(f"Finálna precíznosť (accuracy) modelu: {accuracy * 100:.2f} %")
+print(f"Model accuracy is: {accuracy:.2%}")
 
 tp = np.sum((predictions == 1) & (vector_y == 1))
 tn = np.sum((predictions == 0) & (vector_y == 0))
@@ -140,11 +142,42 @@ recall = tp / (tp + fn + 1e-15)
 
 f1_score = f1_score = 2 * (precision * recall) / (precision + recall + 1e-15)
 
-print(f"Presnosť (precision) modelu je {precision * 100:.2f} %")
-print(f"Citlivosť (sensitivity) modelu je {recall * 100:.2f} %")
-print(f"F1 skóre modelu je {f1_score * 100:.2f} %")
+print(f"Model precision is {precision:.2%}")
+print(f"Model recall is{recall:.2%}")
+print(f"Model F1 score is{f1_score:.2%}")
 
-feature_names = ["Intercept", "Splátky","Cena", "Meškanie"]
+feature_names = ["Intercept", "Installments","Price", "Delay"]
 if model.weights is not None:
     for name, weight in zip(feature_names, model.weights.flatten()):
-        print(f"{name}: {weight:.4f}")  
+        print(f"{name}: {weight:.4f}")
+
+# --- Results visualisation ---
+if model.weights is not None:
+    weights_flat = model.weights.flatten()
+    feature_names_plot = ["Installments", "Price", "Delay"]
+    feature_weights = weights_flat[1:]
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    colors=['#AEC6CF', '#AEC6CF', '#1F3864']
+    ax.barh(feature_names_plot, feature_weights, color=colors)
+    ax.set_xlabel("Weight")
+    ax.set_title("Impact of weights on a bad review")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.xaxis.grid(True, linestyle="--", alpha=0.5)
+    ax.set_axisbelow(True)
+    fig.savefig("weight_distribution.png", dpi=150)
+
+
+confusion_matrix = np.array([[tn, fp],
+                             [fn, tp]])
+row0 = tn + fp
+row1 = fn + tp
+annot_matrix = np.array([[f"TN: {tn} ({tn / row0:.2%})", 
+                          f"FP: {fp} ({(fp / row0):.2%})"],
+                         [f"FN: {fn} ({(fn / row1):.2%})", 
+                          f"TP: {tp} ({(tp / row1):.2%})"]])
+normalised_matrix = (confusion_matrix / confusion_matrix.sum())
+sns.heatmap(normalised_matrix, annot=annot_matrix, fmt="")
+
+plt.show()
