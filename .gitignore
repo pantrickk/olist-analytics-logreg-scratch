@@ -3,4 +3,4 @@ __pycache__/
 data/
 .DS_Store
 .vscode/
-test.ipnyb
+test.ipynb
