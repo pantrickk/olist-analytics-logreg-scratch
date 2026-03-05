@@ -37,6 +37,14 @@ understanding of underlying algorithms
 | Order value | 0.1288 | Expensive disappointments hurt more |
 | Installments | 0.0891 | Marginal effect |
 
+## Interactive Dashboard
+The script includes an interactive dashboard built with matplotlib widgets. A threshold slider allows real-time exploration of the precision-recall tradeoff without retraining the model.
+
+The dashboard displays:
+- Feature weight distribution (static)
+- Confusion matrix with row-normalized percentages (updates live)
+- Metrics panel showing Accuracy, Precision, Recall, and F1 (updates live)
+
 ## Learning Philosophy
 This project is part of my self-directed journey into machine learning 
 through mathematics rather than frameworks. Before using libraries like 
