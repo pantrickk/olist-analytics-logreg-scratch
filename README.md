@@ -55,6 +55,8 @@ The dashboard displays:
 - Confusion matrix with row-normalized percentages (updates live)
 - Metrics panel showing Accuracy, Precision, Recall, and F1 (updates live)
 
+![Interactive Dashboard](dashboard_preview_0.375.png)
+
 ## Learning Philosophy
 This project is part of my self-directed journey into machine learning 
 through mathematics rather than frameworks. Before using libraries like 
