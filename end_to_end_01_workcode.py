@@ -117,7 +117,7 @@ class LogisticRegression():
         # returining updated feature matrix by weights squished into sigmoid
         return self.sigmoid(X @ self.weights)
     
-    def predict(self, X, threshold=0.4):
+    def predict(self, X, threshold=0.375):
         probs = self.predict_probab(X) # probability of our updated matrix 
         return (probs >= threshold).astype(int) # comparing to set threshold (hyperparameter)
 
@@ -197,8 +197,8 @@ if model.weights is not None:
 # reserves rectangle for a slider
 # 35% from the left, 6% from the bottom, 30% wide and 3% tall
 slider_ax = fig.add_axes((0.35, 0.06, 0.3, 0.03))
-# puts slider in rectangle, label Threshold, 0.1 min, 0.9 max, 0.4 is the starting position
-threshold_slider = Slider(slider_ax, 'Threshold', 0.1, 0.9, valinit=0.4)
+# puts slider in rectangle, label Threshold, 0.1 min, 0.9 max, 0.375 is the starting position
+threshold_slider = Slider(slider_ax, 'Threshold', 0.1, 0.9, valinit=0.375)
 
 def update(val):
     t = threshold_slider.val # grabs the current position of the slider 
