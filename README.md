@@ -13,13 +13,23 @@ installments. Logistics quality, not price, determines customer satisfaction.
 ## Results
 | Metric | Value |
 |--------|-------|
-| Accuracy | 91.2% |
-| Precision | 58.8% |
-| Recall | 32.5% |
-| F1 Score | 41.9% |
+| Accuracy | 90.76% |
+| Precision | 54.15% |
+| Recall | 35.3% |
+| F1 Score | 42.74% |
 
 *Note: Class imbalance (89% positive reviews) makes accuracy misleading — 
 F1 score is the relevant metric for minority class detection.*
+
+## Feature Experimentation
+Additional features were tested to improve model performance:
+
+- **Freight value** (shipping cost per order): Showed the second strongest weight after delivery delay (0.2592), but did not improve F1 due to high correlation with price — both features compete for the same signal.
+- **Customer state** (one-hot encoded, 26 features): Added no predictive value. F1 decreased slightly from 41.91% to 40.73%.
+- **Classification threshold**: Optimized from 0.4 to 0.375 using the interactive dashboard, improving F1 from 41.91% to 42.74%.
+
+### Key Takeaway
+Delivery delay is the dominant predictor of bad reviews (weight: 0.76). Other features like price, installments, shipping cost, and customer location add marginal value. The business implication is clear: improving delivery reliability is the most effective way to reduce negative reviews.
 
 ## Technical Approach
 - **Data pipeline:** DuckDB in-memory SQL with CTEs joining orders, 
