@@ -81,7 +81,7 @@ class LogisticRegression():
         # we are punishing bad prediction with higher penalties through logarithms
         log_likelihood = y * np.log(p + epsilon) + (1 - y) * np.log(1 - p + epsilon)
 
-        return np.sum(log_likelihood) # sum of log-likelihood across epochs
+        return np.sum(log_likelihood) # sum of log-likelihood across rows (customers)
     
     
 
@@ -145,7 +145,7 @@ model.fit(X_array, vector_y)
 
 predictions = model.predict(X_array) # comparison to threshold
 
-# -- Model Evaluation
+# --- Model Evaluation ---
 # confusion matrix
 tp = np.sum((predictions == 1) & (vector_y == 1)) # reality: bad review, predicted: bad review
 tn = np.sum((predictions == 0) & (vector_y == 0)) # reality: good review, predicted: good reviewv
@@ -172,34 +172,37 @@ if model.weights is not None:
         print(f"{name}: {weight:.4f}")
 
 # --- Results Visualisation ---
-probs = model.predict_probab(X_array)
+probs = model.predict_probab(X_array) # one prediction with which will visualisation operate
 
 from matplotlib.widgets import Slider
 
-fig, axes = plt.subplots(1, 3, figsize=(18, 6))
-fig.subplots_adjust(bottom=0.2)
+fig, axes = plt.subplots(1, 3, figsize=(18, 6)) # one figure with 3 charts side-by-side; 18, 6 is figsize in inches
+fig.subplots_adjust(bottom=0.2) # shrinks plot upward to make room for the slider at the bottom
 
 # weight bar chart (static)
 if model.weights is not None:
     weights_flat = model.weights.flatten()
     feature_names_plot = ["Installments", "Price", "Delay"]
-    feature_weights = weights_flat[1:]
+    feature_weights = weights_flat[1:] # selects only weights not intercept
     colors_bar = ['#AEC6CF', '#AEC6CF', '#1F3864']
-    axes[0].barh(feature_names_plot, feature_weights, color=colors_bar)
+    axes[0].barh(feature_names_plot, feature_weights, color=colors_bar) # horizontal bar chart
     axes[0].set_xlabel("Weight")
     axes[0].set_title("Impact of weights on a bad review")
-    axes[0].spines["top"].set_visible(False)
-    axes[0].spines["right"].set_visible(False)
-    axes[0].xaxis.grid(True, linestyle="--", alpha=0.5)
-    axes[0].set_axisbelow(True)
+    axes[0].spines["top"].set_visible(False) # making top borderline invisible
+    axes[0].spines["right"].set_visible(False) # making right borderline invisible
+    axes[0].xaxis.grid(True, linestyle="--", alpha=0.5) # reference points at regular intervals
+    axes[0].set_axisbelow(True) # gridlines are set behind the bars
 
 # slider
+# reserves rectangle for a slider
+# 35% from the left, 6% from the bottom, 30% wide and 3% tall
 slider_ax = fig.add_axes((0.35, 0.06, 0.3, 0.03))
+# puts slider in rectangle, label Threshold, 0.1 min, 0.9 max, 0.4 is the starting position
 threshold_slider = Slider(slider_ax, 'Threshold', 0.1, 0.9, valinit=0.4)
 
 def update(val):
-    t = threshold_slider.val
-    preds = (probs >= t).astype(int)
+    t = threshold_slider.val # grabs the current position of the slider 
+    preds = (probs >= t).astype(int) # compares customer probability to the threshold and set to 0 or 1
 
     tp = np.sum((preds == 1) & (vector_y == 1))
     tn = np.sum((preds == 0) & (vector_y == 0))
@@ -226,15 +229,19 @@ def update(val):
     axes[2].clear()
     metrics = [accuracy, precision, recall, f1]
     names = ["Accuracy", "Precision", "Recall", "F1"]
-    colors_met = ['#AEC6CF', '#AEC6CF', '#AEC6CF', '#1F3864']
+    colors_met = ["#00FF3C", '#AEC6CF', '#AEC6CF', '#1F3864']
     axes[2].barh(names, metrics, color=colors_met)
-    axes[2].set_xlim(0, 1)
+    axes[2].set_xlim(0, 1) # fixes x-axis between 0, 1
     axes[2].set_title("Metrics")
+    # for loop for naming the bars
+    # v + 0.02 is the horizontal position
+    # i is the vertical position
+    # f"{v:.2%}" puts there the percentage of the bar
     for i, v in enumerate(metrics):
         axes[2].text(v + 0.02, i, f"{v:.2%}", va='center')
 
-    fig.canvas.draw_idle()
+    fig.canvas.draw_idle() # pushes new visual into the window
 
-update(None)
-threshold_slider.on_changed(update)
+update(None) # draw everything with default threshold
+threshold_slider.on_changed(update) # connects slider to the update function
 plt.show()
